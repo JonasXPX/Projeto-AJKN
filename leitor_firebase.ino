@@ -7,7 +7,7 @@
 SoftwareSerial serial(14, 12);
 Adafruit_Fingerprint finger = Adafruit_Fingerprint(&serial);
 
-const String address = "10.35.220.87";
+const String address = "10.35.216.123";
 
 void setup() {
   Serial.begin(9600);
@@ -33,23 +33,29 @@ void setup() {
 }
 
 void loop() {
-  int saida = lerRegistro();
+  int saida = aguardarIdParaRegistro();
+  if(saida == -1) {
+    
+  }
   Serial.print("> " + String(saida));
   if(saida >= 1){
     int out = registrar(saida);
-    Serial.print("Registro concluido, error code: ");
-    int erro = getErrorByCode(out);
-    Serial.println(erro);
+    Serial.print("Registro concluido: ");
+    Serial.println(getErrorByCode(out));
+    
     if(erro == 0){
       enviarRegistro(saida);
       Serial.println("Registro enviado.");
       delay(1000);
     }
+    
   }
+  
   int fingerID = getFinger();
   if(fingerID != -1) {
-    sendData(fingerID);
+    sendReadFinger(fingerID);
   }
+  
   delay(500);
 }
 
@@ -67,28 +73,26 @@ int getFinger(){
   return finger.fingerID;
 }
 
-void sendData(int id){
+int sendReadFinger(int id){
     HTTPClient http;
     http.begin("http://"+ String(address) + "/api/senddata/" + String(id));
     http.addHeader("Content-Type", "application/json");
     int httpCode = http.POST("{\"id\": \"" + String(id) + "\"}");
     http.end();
-    Serial.print("sendData(): ");
-    Serial.println(httpCode);
-    Serial.println(http.getString());
+    return httpCode;
 }
 
 
 String enviarRegistro(int id){
   HTTPClient http;
   http.begin("http://" + String(address) + "/api/registrar/" + String(id));
-  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  http.addHeader("Content-Type", "application/json");
   http.POST("");
   return http.getString();
 }
 
 
-int lerRegistro(){
+int aguardarIdParaRegistro(){
   String saida = "-1";
   HTTPClient http;
   http.begin("http://" + String(address) +"/api/registrar");
@@ -103,7 +107,7 @@ int lerRegistro(){
 }
 
 int registrar(int saida) {
-  Serial.print("Registrando Digital na ID");
+  Serial.print("Registrando Digital na ID ");
   Serial.println(saida);
   int p = -1;
   while(p != FINGERPRINT_OK){
@@ -137,7 +141,7 @@ int registrar(int saida) {
       case FINGERPRINT_NOFINGER:
         break;
       default:
-        Serial.println("Erro getImage(2)");
+        Serial.println("Error getImage(2)");
         break;
     }
   }
@@ -148,18 +152,18 @@ int registrar(int saida) {
     case FINGERPRINT_OK:
       break;
     default:
-      Serial.println("Erro image2Tz(2)");
+      Serial.println("Error image2Tz(2)");
       return p;
   } 
   p = finger.createModel();
   if(p != FINGERPRINT_OK){
-    Serial.println("Erro on createModel()");
+    Serial.println("Error on createModel()");
     return p;
   }
 
   p = finger.storeModel(saida);
   if(p != FINGERPRINT_OK){
-    Serial.println("Erro on storeModel()");
+    Serial.println("Error on storeModel()");
     return p;
   }
     
