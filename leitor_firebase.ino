@@ -10,10 +10,11 @@
 SoftwareSerial serial(14, 12);
 Adafruit_Fingerprint finger = Adafruit_Fingerprint(&serial);
 
-const String address = "10.35.223.242";
+const String address = "192.168.1.8";
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 String msgDeErro;
+String bemVindoMsg;
 
 void setup() {
   Serial.begin(9600);
@@ -29,7 +30,7 @@ void setup() {
       Serial.println("Leitor Biometrico nao encontrado");
     }
   }
-  WiFi.begin("Campus Boulevard", "");
+  WiFi.begin("JonasJessica", "hjhj1212");
 
   setMensagem(0,0, "Conectando...");
   Serial.println("Conectando à rede");
@@ -42,6 +43,9 @@ void setup() {
   setMensagem(0,0, "Conectado! IP: " + ip);
   Serial.print("Conectado! Seu IP é:");
   Serial.println(WiFi.localIP());
+
+  bemVindoMsg = getMensagemFromServer("bemvindo");
+ // cadastrar = getMensagemFromServer("cadastrar");
 }
 
 void loop() {
@@ -72,7 +76,7 @@ void loop() {
   if (fingerID != -1) {
     sendReadFinger(fingerID);
   }
-  setMensagem(0, 0, "   Bem vindo!   Ao laboratorio");
+  setMensagem(0, 0, bemVindoMsg);
   delay(500);
 }
 
@@ -242,6 +246,16 @@ int getErrorByCode(int code) {
       break;
   }
   return error;
+}
+
+
+String getMensagemFromServer(String param) {
+  HTTPClient http;
+  http.begin("http://" + String(address) + "/api/getmensagem/" + String(param));
+  http.GET();
+  String msg = http.getString();
+  http.end();
+  return msg;
 }
 
 void setMensagem(int pos1, int pos2, String msg) {
