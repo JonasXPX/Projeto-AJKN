@@ -2,16 +2,16 @@
 
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WiFi.h>
-#include <ArduinoJson.h>
+
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
-//D5 D6
-SoftwareSerial serial(14, 12);
+
+SoftwareSerial            serial(14, 12); //D5 D6
 Adafruit_Fingerprint finger = Adafruit_Fingerprint(&serial);
 
-const String address = "192.168.1.8";
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+const String address  =  "192.168.43.78";
+LiquidCrystal_I2C        lcd(0x27, 16, 2);
 
 String msgDeErro;
 String bemVindoMsg;
@@ -30,9 +30,10 @@ void setup() {
       Serial.println("Leitor Biometrico nao encontrado");
     }
   }
-  WiFi.begin("JonasJessica", "hjhj1212");
+  WiFi.begin("AJKN", "hackme");
 
   setMensagem(0,0, "Conectando...");
+  
   Serial.println("Conectando à rede");
   while (WiFi.status() != WL_CONNECTED) {
     delay(100);
@@ -41,6 +42,7 @@ void setup() {
 
   String ip = WiFi.localIP().toString();
   setMensagem(0,0, "Conectado! IP: " + ip);
+  
   Serial.print("Conectado! Seu IP é:");
   Serial.println(WiFi.localIP());
 
